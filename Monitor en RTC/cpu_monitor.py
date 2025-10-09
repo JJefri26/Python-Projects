@@ -64,7 +64,7 @@ class App:
         self.ax.grid(linestyle=":")
         self.ax.set_ylim(0, 100)
         self.ax.set_xlim(0, 100)
-        self.ax.set_title("CPU Usage [%]", color="white", font = '"MS Serif" 18')
+        self.ax.set_title("CPU Usage [%]", color="white")#, font = '"MS Serif" 18')
         self.ax.spines['top'].set_visible(False)
         self.ax.spines['right'].set_visible(False)
         self.ax.set_xticklabels([""])
