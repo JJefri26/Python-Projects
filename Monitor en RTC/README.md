@@ -16,4 +16,4 @@ La imagen muestra un ejemplo del resultado obtenido, algunas consideraciones a t
     - Psutil 5.9
 
 Si se tiene python 3.12 Psutil debe ser mayor a 6. Además, dependiendo de las versiones de matplotlib se generan mensajes de warning en el manejo de gráficas.
-
+![alt text](https://github.com/JJefri26/Python-Projects/blob/main/Monitor%20en%20RTC/monitor.jpg?raw=true)
