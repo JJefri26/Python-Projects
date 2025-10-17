@@ -84,7 +84,7 @@ class MainWindow:
         self.tabPacientes.column('#4', width=80, minwidth=80, stretch=tk.NO)
         self.tabPacientes.column('#5', width=80, minwidth=80, stretch=tk.NO)
         
-        self.tabPacientes.tag_configure('even',foreground='#e6f7b2')
+        self.tabPacientes.tag_configure('even',background='#e6f7b2')
         self.tabPacientes.tag_configure('odd', background='#f4fae1')
         
         self.tabPacientes.bind("<<TreeviewSelect>>", self.open_graph_window)
@@ -119,15 +119,17 @@ class MainWindow:
                 self.tabPacientes.insert("", tk.END, text=paciente[0], values=paciente[1:], tags = 'even')
             else:
                 self.tabPacientes.insert("", tk.END, text=paciente[0], values=paciente[1:], tags = 'odd')
-         
     
     def open_graph_window(self, event):
         # Abre la ventana secundaria con el grafico de peso
-        window = tk.Toplevel(self.master)
         
         idx = self.tabPacientes.selection()
+        if not idx:
+            return
+        
         id_pac = self.tabPacientes.item(idx)['text']
         
+        window = tk.Toplevel(self.master)
         GraphWindow(window, id_pac)
     
     
@@ -138,11 +140,13 @@ class GraphWindow:
         # (requiere id_pac para cargar los datos de un paciente)
         self.master = master
         self.master.title("Details Window")
-        self.master.geometry("500x300+50+50")
+        self.master.geometry("550x400+50+50")
         self.master.grab_set()
         self.master.focus()
         self.master.config(bg = "#000000")
+        self.master.resizable(0, 0)
         
+        self.master.protocol("WM_DELETE_WINDOW", self.on_close)
         self.db = Database()
         
         frm = tk.Frame(self.master,bg = "#000000")
@@ -155,7 +159,7 @@ class GraphWindow:
         
         # ------------------ Canva ----------------------------------
         label_format = '{:,.0f}'
-        self.fig, self.ax = plt.subplots(figsize=(7, 5), facecolor="#000000")
+        self.fig, self.ax = plt.subplots(figsize=(6, 4), facecolor="#000000")
         self.line, = self.ax.plot(self.var_pesos,'-s',color='#FF0252',markersize=5)
         self.ax.grid(linestyle=":")
         self.ax.set_ylim(min(self.var_pesos)-5, max(self.var_pesos)+5)
@@ -177,6 +181,11 @@ class GraphWindow:
         
         self.graph = FigureCanvasTkAgg(self.fig, master=frm)
         self.graph.get_tk_widget().pack(expand=True, fill=tk.X)
+        
+    def on_close(self):
+        
+        plt.close(self.fig)  # <-- Cierra la figura para liberar memoria
+        self.master.destroy()
         
 
 root = tk.Tk()
