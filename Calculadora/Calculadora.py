@@ -1,155 +1,138 @@
-# -*- coding: utf-8 -*-
-"""
-@author: Jaime Jefri Robles Hernandez ----- U201718395
-"""
-
-import datetime
-import psutil
 import tkinter as tk
 import tkinter.ttk as ttk
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-data1 = []
-data2 = []
-
-
-
-class App:
-    global data1, data2
-    
+class Calculadora:
     def __init__(self, master):
         self.master = master
-        self.master.title("Monitor de Recursos")
-        self.master.geometry("620x320+100+100")
+        self.master.title("Calculadora")
+        self.master.geometry("330x300+100+100")
         self.master.resizable(0, 0)
-        self.master.config(bg = "#000000")
+        self.master.config(bg="#0A122A")
+        self.master.iconbitmap("icon_calc.ico")
+        
+        self.first_num = 0
+        self.var_op = None
+        self.var_num = tk.StringVar()
+        self.var_num.set('0')
+        self.solved = False
+        
+        frm = tk.Frame(self.master, bg="#0A122A")
+        frm.pack(padx=10, pady=10)
+        
+        # Widgets de la calculadora
+        self.entDisplay = tk.Entry(frm, width=15, font='"Digital-7 Mono" 20', 
+                                   textvariable=self.var_num, justify=tk.RIGHT, 
+                                   bg="#e6e4d9", bd=3)
+        self.btn0 = tk.Button(frm, text="0", width=4, font="Arial 16", bg='#A9A9F5', 
+                              command=lambda: self.add_num_display('0'))
+        self.btn1 = tk.Button(frm, text="1", width=4, font="Arial 16", bg='#A9A9F5', 
+                              command=lambda: self.add_num_display('1'))
+        self.btn2 = tk.Button(frm, text="2", width=4, font="Arial 16", bg='#A9A9F5', 
+                              command=lambda: self.add_num_display('2'))
+        self.btn3 = tk.Button(frm, text="3", width=4, font="Arial 16", bg='#A9A9F5', 
+                              command=lambda: self.add_num_display('3'))
+        self.btn4 = tk.Button(frm, text="4", width=4, font="Arial 16", bg='#A9A9F5', 
+                              command=lambda: self.add_num_display('4'))
+        self.btn5 = tk.Button(frm, text="5", width=4, font="Arial 16", bg='#A9A9F5', 
+                              command=lambda: self.add_num_display('5'))
+        self.btn6 = tk.Button(frm, text="6", width=4, font="Arial 16", bg='#A9A9F5', 
+                              command=lambda: self.add_num_display('6'))
+        self.btn7 = tk.Button(frm, text="7", width=4, font="Arial 16", bg='#A9A9F5', 
+                              command=lambda: self.add_num_display('7'))
+        self.btn8 = tk.Button(frm, text="8", width=4, font="Arial 16", bg='#A9A9F5', 
+                              command=lambda: self.add_num_display('8'))
+        self.btn9 = tk.Button(frm, text="9", width=4, font="Arial 16", bg='#A9A9F5', 
+                              command=lambda: self.add_num_display('9'))
+        self.btnPoint = tk.Button(frm, text=".", width=4, font="Arial 16", bg='#A9A9F5', 
+                                  command=lambda: self.add_num_display('.'))
+        self.btnEqual = tk.Button(frm, text="=", width=4, font="Arial 16", bg='#A9A9F5', 
+                                  command=self.solve)
+        self.btnAdd = tk.Button(frm, text="+", width=4, font="Arial 16", bg='#5858FA', 
+                                command=lambda: self.set_operation('+'))
+        self.btnSub = tk.Button(frm, text="-", width=4, font="Arial 16", bg='#5858FA', 
+                                command=lambda: self.set_operation('-'))
+        self.btnMul = tk.Button(frm, text="x", width=4, font="Arial 16", bg='#5858FA', 
+                                command=lambda: self.set_operation('x'))
+        self.btnDiv = tk.Button(frm, text="/", width=4, font="Arial 16", bg='#5858FA', 
+                                command=lambda: self.set_operation('/'))
+        self.btnDel = tk.Button(frm, text="DEL", width=4, font="Arial 16", bg='#FE2E64', 
+                                command=self.clear_display)
+        
+        self.entDisplay.grid(row=0, column=1, columnspan=3, padx=5, pady=5)
+        self.btn0.grid(row=4, column=0, padx=5, pady=5)
+        self.btn1.grid(row=3, column=0, padx=5, pady=5)
+        self.btn2.grid(row=3, column=1, padx=5, pady=5)
+        self.btn3.grid(row=3, column=2, padx=5, pady=5)
+        self.btn4.grid(row=2, column=0, padx=5, pady=5)
+        self.btn5.grid(row=2, column=1, padx=5, pady=5)
+        self.btn6.grid(row=2, column=2, padx=5, pady=5)
+        self.btn7.grid(row=1, column=0, padx=5, pady=5)
+        self.btn8.grid(row=1, column=1, padx=5, pady=5)
+        self.btn9.grid(row=1, column=2, padx=5, pady=5)
+        self.btnPoint.grid(row=4, column=1, padx=5, pady=5)
+        self.btnEqual.grid(row=4, column=2, padx=5, pady=5)
+        self.btnAdd.grid(row=1, column=3, padx=5, pady=5)
+        self.btnSub.grid(row=2, column=3, padx=5, pady=5)
+        self.btnMul.grid(row=3, column=3, padx=5, pady=5)
+        self.btnDiv.grid(row=4, column=3, padx=5, pady=5)
+        self.btnDel.grid(row=0, column=0, padx=5, pady=5)
+        
+        
+    def add_num_display(self, num):
+        if self.solved:
+            self.clear_display()
+            self.solved = False
+            
+        if self.var_num.get() == '0' or self.var_num.get() == "E":
+            self.var_num.set('')
+        
+        if num == '.' and self.var_num.get() == '':
+            self.var_num.set("0.")
+        
+        if len(self.var_num.get()) < 12:
+            if num == '.' and self.var_num.get().count('.') > 0:
+                return None
+            
+            self.var_num.set(self.var_num.get() + num)
+        
+        
+    def set_operation(self, op):
+        if self.var_op == None:
+            self.var_op = op
+            self.first_num = float(self.var_num.get())
+            self.clear_display()
+        
+        
+    def solve(self):
+        # Si es que se ha seleccionado previamente +, -, x, /...
+        if self.var_op == '+':
+            result =self.first_num + float(self.var_num.get())
+        elif self.var_op == '-':
+            result =self.first_num - float(self.var_num.get())
+        elif self.var_op == 'x':
+            result =self.first_num * float(self.var_num.get())
+        elif self.var_op == '/':
+            # TODO: Division entre cero
+            try:
+                result =self.first_num / float(self.var_num.get())
+            except ZeroDivisionError:
+                result = "E"
 
-        # Variables para los porcentajes
-        self.var_Pusage_CPU = tk.DoubleVar()
-        self.var_Pusage_Ram = tk.DoubleVar()
-        self.var_Pusage_HDD = tk.DoubleVar()
-        
-        # Variables para los datos enteros
-        self.var_usage_CPU = tk.IntVar()
-        self.var_usage_Ram = tk.DoubleVar()
-        self.var_usage_HDD = tk.DoubleVar()
-        
-        #Valores para la barra de estado
-        self.var_in = tk.IntVar()
-        self.var_out = tk.IntVar()
-        self.var_fecha = tk.StringVar()
-        self.var_espacio = tk.StringVar()
-        
-        # Para el Canva
-        self.var_Datos = tk.IntVar(value=1)
-        
-        # ---------------------------------- Status Bar ------------------------------------------
-        self.statusbar = tk.Label(self.master, text="", bd=1, relief=tk.SUNKEN, anchor=tk.W)
-        self.statusbar.pack(side=tk.BOTTOM, fill=tk.X)
-        
-        # ---------------------------------- Frames ------------------------------------------
-        
-        frmI = tk.Frame(self.master,bg = "#000000")
-        frmD = tk.Frame(self.master,bg = "#000000")
-        frmI.pack(side=tk.LEFT)
-        frmD.pack(side=tk.LEFT)
-        
-        # ---------------------------------- Frame D ------------------------------------------
-        # ---------------------------------- Canva ------------------------------------------
-        
-        
-        self.fig, self.ax = plt.subplots(figsize=(5, 3), facecolor="#000000")
-        self.line, = self.ax.plot([10],color='#FF0252')
-        self.ax.grid(linestyle=":")
-        self.ax.set_ylim(0, 100)
-        self.ax.set_xlim(0, 100)
-        self.ax.set_title("CPU Usage [%]", color="white", font = '"MS Serif" 18')
-        self.ax.spines['top'].set_visible(False)
-        self.ax.spines['right'].set_visible(False)
-        self.ax.set_xticklabels([""])
-        self.ax.set_yticklabels([0,20,40,60,80,100], color = "white")
-        self.ax.set_facecolor('#000000')
-        self.ax.set_xlabel("Jefri Robles Hernandez", color = "white")
-        
-        self.graph = FigureCanvasTkAgg(self.fig, master=frmD)
-        self.graph.get_tk_widget().pack(expand=True, fill=tk.X)
-        
-        
-        # ---------------------------------- Frame I ------------------------------------------
-        
-        self.lblCPU_Usage = tk.Label(frmI, text="", font='"MS Serif" 12',bg = "#000000", fg="White")
-        self.lblRam_Usage = tk.Label(frmI, text="", font='"MS Serif" 12',bg = "#000000", fg="White")
-        self.lblHDD_Usage = tk.Label(frmI, text="", font='"MS Serif" 12',bg = "#000000", fg="White")
-        
-        self.s = ttk.Style()
-        self.s.theme_use('alt')
-        self.s.configure("red.Horizontal.TProgressbar", troughcolor='#EAEDF6', background='#FF0252',border = 5 )
-        
-        self.Barra1 = ttk.Progressbar(frmI,orient='horizontal', mode='determinate',length=270,style="red.Horizontal.TProgressbar")
-        self.Barra2 = ttk.Progressbar(frmI,orient='horizontal', mode='determinate',length=270,style="red.Horizontal.TProgressbar")
-        self.Barra3 = ttk.Progressbar(frmI,orient='horizontal', mode='determinate',length=270,style="red.Horizontal.TProgressbar")
-
-        
-        
-        self.lblCPU_Usage.grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
-        self.lblRam_Usage.grid(row=3, column=0, padx=5, pady=5, sticky=tk.W)
-        self.lblHDD_Usage.grid(row=5, column=0, padx=5, pady=5, sticky=tk.W)
-        self.Barra1.grid(row=2, column=0, columnspan=2, padx=10, pady=20, sticky=tk.W)
-        self.Barra2.grid( row=4, column=0, columnspan=2, padx=10, pady=20, sticky=tk.W)
-        self.Barra3.grid( row=6, column=0, columnspan=2, padx=10, pady=20, sticky=tk.W)
-        
-
+        self.var_op = None
+        self.var_num.set(str(result)[:12])
+        self.solved = True
                 
-        self.read_psutil_data()
+        
+    def clear_display(self):
+        self.var_num.set('0')
         
     
-    def read_psutil_data(self):
-        # Obtencion de datos del CPU
-        
-        self.var_usage_CPU.set(psutil.cpu_count(logical=False))
-        self.var_Pusage_CPU.set(psutil.cpu_percent())
-        
-        # Obtencion de datos de la RAM
-        self.var_usage_Ram.set(psutil.virtual_memory().total/1024/1024/1024)
-        self.var_Pusage_Ram.set(psutil.virtual_memory().percent)
-        
-        # Obtencion de datos del Disco Madre
-        self.var_usage_HDD.set(psutil.disk_usage("/").total/1024/1024/1024)
-        self.var_Pusage_HDD.set(psutil.disk_usage("/").percent)
-        
-        # Obtencion de datos del internet
-        self.var_in.set(psutil.net_io_counters().bytes_recv)
-        self.var_out.set(psutil.net_io_counters().bytes_sent)
-        
-        # Obtencion de datos de la fecha
-        self.var_fecha.set(datetime.datetime.now().strftime("%F %T"))
-        self.var_espacio.set(" "*90)
-        
-        # Escribo lo que obtengo o reemplazo
-        self.lblCPU_Usage.config(text=f"CPU Usage ({self.var_usage_CPU.get()} core): {self.var_Pusage_CPU.get()}%")
-        self.lblRam_Usage.config(text=f"RAM Usage (Total: {self.var_usage_Ram.get():.2f} Gb): {self.var_Pusage_Ram.get()}%")
-        self.lblHDD_Usage.config(text=f"HDD Usage (Total: {self.var_usage_HDD.get():.2f} Gb): {self.var_Pusage_HDD.get()}%")
-        self.statusbar.config(text=f"Net info [in: {self.var_in.get():,}| out: {self.var_out.get():,}] {self.var_espacio.get()} {self.var_fecha.get():20}")
-        
-        # Escribo los valores de las barras
-        self.Barra1['value'] = self.var_Pusage_CPU.get()
-        self.Barra2['value'] = self.var_Pusage_Ram.get()
-        self.Barra3['value'] = self.var_Pusage_HDD.get()
-        
-        data1.append(self.var_Pusage_CPU.get())
-        data2 = [x for x in range(1,len(data1)+1)]
-                
-        self.line.set_ydata(data1)
-        self.line.set_xdata(data2)
-        self.graph.draw()
-                
-        self.master.after(1000, self.read_psutil_data)
-    
-    
+def main():        
+    root = tk.Tk()     # TopLevel
+    app = Calculadora(root)
+    root.mainloop()
 
-
-root = tk.Tk()
-app = App(root)
-root.mainloop()
+# python calculator.py (__name__ : "__main__") desde el interprete
+# import calculator.py (__name__ : "calculator.py")
+if __name__ == "__main__":
+    main()
